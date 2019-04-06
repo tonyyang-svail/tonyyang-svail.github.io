@@ -35,4 +35,4 @@ We found a lot of duplications. For example
   - Namespace and file location could be merged
   - Compilation and Linking could be merge
 
-And this is exactly what more modern languages like Python, Java and Go do.
+And this is exactly what more modern languages like Python, Java and Go did.
