@@ -52,6 +52,6 @@ comments: true
 
 1. [@reyoung](https://github.com/reyoung) 老师的博文：[《文档是沟通的中间件》](https://github.com/tonyyang-svail/blog/blob/tonyyang-svail-fix-why-documentation-links/2016/11/why_documentation.md)
 2. [sql-machine-learning 项目](https://github.com/sql-machine-learning)中的一些例子
-   1. [Customized Model](https://github.com/sql-machine-learning/sqlflow/blob/develop/doc/design/design_customized_model.md)
+   1. [Model Zoo](https://github.com/sql-machine-learning/sqlflow/blob/f776e62a338d08902cfa4e937f849203b5ad9ac3/doc/design/model_zoo.md)
    2. [Parameter Server](https://github.com/sql-machine-learning/elasticdl/blob/c6b4ee5ec0a692b8142426df4c9c104a24864194/docs/designs/ps_design.md)
 3. 我曾向同事吐槽说：“我真是看不懂人家写的代码，尤其是 Python 这种容易写不容易读的语言写的代码。”同事回：“放心，你写的他们也看不懂”。我当时就乐了，想：如果没有设计文档让大家在 high level 保持一致的话，每个人只是读对方的代码进行交流的话，团队的运转会是多么的低效呀。
