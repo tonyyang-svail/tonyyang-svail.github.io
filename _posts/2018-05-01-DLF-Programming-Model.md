@@ -5,9 +5,7 @@ title:  "Deep Learning Framework Programming Model"
 
 ## Before Deep Learning Framework
 
-在深度学习框架（Deep Learning Framework）普及前，实验室的研究员基本上用的是MATLAB和Python来做实验。比如你要训练一个模型，首先要手推导数，再把公式转化成对应的代码。
-
-比如在MATLAB下，训练一个两层fully connected layer的神经网络来做MNIST的Auto Encoder，代码一般要写成如下
+在深度学习框架（Deep Learning Framework, DLF）普及前，实验室的研究员基本上用的是 MATLAB 和 Python 来做实验。在训练一个模型前，研究员首先要手推导数，再把公式转化成对应的代码。比如研究员需要训练一个拥有两层 fully connected layer 的神经网络来做 MNIST 的 Auto Encoder，他需要书写如下 MATLAB 代码
 
 ```matlab
 % Forward -------------------------------------------------
@@ -37,39 +35,25 @@ W1grad = numImages_inv .* delta1 * data' + lambda .* W1;
 ...
 ```
 
-对简单的网络这样手动求导还可以接受，但网络复杂了之后比较难处理了。尤其是当模型训练不好的时候，你不知道是导数求错了，还是模型没有设计好，或是优化的hyper parameter没有调好。十分难Debug。
+我们可以看到，整个代码还是很复杂的。对简单的网络这么做还可以接受，但网络复杂了之后比较难处理了。尤其是当模型训练不好的时候，你不知道是导数求错了，还是模型没有设计好，或是优化的hyper parameter没有调好。十分难Debug。
 
 但当时没有一个好的深度学习框架，大家也都是这么做的。直到Caffe的出现。
 
 ## 2013: 有点像黑箱的Caffe
 
-Caffe实现了自动求导（[reverse-mode](https://rufflewind.com/2016-12-30/reverse-mode-automatic-differentiation)[autodiff](http://colah.github.io/posts/2015-08-Backprop/)）。
+Caffe 实现了[自动求导(autodiff)](https://rufflewind.com/2016-12-30/reverse-mode-automatic-differentiation)。用户只需要用plaintext/protobuf定义[前向的网络](https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_quick.prototxt)和[训练参数](https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_quick_solver.prototxt)，然后运行`caffe train filename.prototxt`就可以开始训练了，整个过程用户一行脚本代码都不用写。这种 programming model 一般被称为 [define and run](https://docs.chainer.org/en/stable/guides/define_by_run.html)，意为我们先定义一个模型，然后在去执行这个模型。
 
-用户只需要用plaintext/protobuf定义[前向的网络](https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_quick.prototxt)和[训练参数](https://github.com/BVLC/caffe/blob/master/examples/cifar10/cifar10_quick_solver.prototxt)，然后直接运行`caffe train filename.prototxt`就可以开始训练了，整个过程用户一行脚本代码都不用写。这种programming model一般被称为[define and run](https://docs.chainer.org/en/stable/guides/define_by_run.html)，意为我们先定义一个模型，然后在去执行这个模型。
+Caffe 提供的自动求导大大简化了 deep learning 的研究过程，是一款相当受欢迎的深度学习框架。但同时，Caffe 也为 autodiff 付出了不小的代价。
 
-Caffe提供的自动求导大大简化了deep learning的研究过程，是一款相当受欢迎的深度学习框架。
+首先是 Caffe 的训练过程很黑箱。在 MATLAB 中，用户可以完全控制整个训练过程：在任意地方设置断点，然后更改或是可视化某一个 tensor。但在 Caffe 中，数据只能通过RecordIO读取。其次是 Caffe 没有控制流（control flow），较难表示 RNN 这类模型结构会因输入而变化的模型。
 
-但同时，Caffe也为autodiff付出了不小的代价。
-
-Caffe的训练过程很黑箱。原来在MATLAB中，用户可以完全控制整个训练过程：在任意地方设置断点，然后更改或是可视化某一个tensor。数据只能通过RecordIO读取。Caffe虽然有MATLAB和Python wrapper，但都十分地high level
-
-```python
-# do forward pass to compute features
-net.Forward(input_blobs, output_blobs)
-# numpy ndarray of the conv2 layer and fc7 layer
-conv2 = net.blobs['conv2'].data 
-fc7 = net.blobs['fc7'].data
-```
-
-Caffe没有控制流（control flow）。Caffe是直接根据protobuf里定义的layers顺序执行的。
-
-针对Caffe的这些限制，TensorFlow和PyTorch对这些问题都做了不同程度的改进。
+而 TensorFlow 的出现，很好滴解决了 Caffe 的这些限制。
 
 ## 2015: TensorFlow
 
 TensorFlow也实现了自动求导。
 
-和Caffe类似，TensorFlow也是[define and run](https://docs.chainer.org/en/stable/guides/define_by_run.html)的programming model。用户在host language（Python/R/C++）把计算图（包括Forward，Backward和Optimization）定义好，然后在每个iteration通过`session.run()`来feed和fetch计算图里的Tensor。但是用户操作的不在是layers，而是operators，颗粒度更细。
+和 Caffe 类似，TensorFlow 也是 [define and run](https://docs.chainer.org/en/stable/guides/define_by_run.html) 的 programming model。用户在host language（Python/R/C++）把计算图（包括 Forward 和 Optimization）定义好，然后在每个 iteration 通过`session.run()`来 feed 和 fetch 计算图里的 Tensor。TensorFlow 支持更细的定义力度，用户可以直接定义 operators（如加减乘除，concat，convolution）。
 
 ```python
 import numpy as np
@@ -99,9 +83,9 @@ with tf.Session() as sess:
     c_val, grad_x_val, grad_y_val, grad_z_val = out
 ```
 
-与caffe的黑箱不同的是，TensorFlow在构造计算图的时候有更丰富的信息。比如，用户可以在构造计算图的时候查看各个Tensor的dimension。每次往计算图里加operator的时候TF也会检查dimension，提前报错。另外，TensorFlow提供的 [tensorboard](https://www.tensorflow.org/guide/summaries_and_tensorboard)能很好地可视化模型。
+与 Caffe 的黑箱不同的是，TensorFlow 在构造计算图的时候有更丰富的信息。比如，用户可以在构造计算图的时候查看各个 Tensor 的 dimension 并做检查。另外，TensorFlow 提供的 [TensorBoard](https://www.tensorflow.org/guide/summaries_and_tensorboard) 能很好地可视化模型。
 
-TensorFlow支持了control flow（`cond`/`while_loop`）。但由于TensorFlow的计算图不依赖于host language，这些control flow写起来和host language的语法有很大差别。
+TensorFlow 支持了 control flow（`cond`/`while_loop`）。但由于 TensorFlow 的计算图独立于 host language，这些 control flow 写起来和 host language 的语法有很大差别。
 
 ```python
 i = tf.constant(0)
@@ -112,9 +96,9 @@ r = tf.while_loop(c, b, [i])
 
 ## 2017: PyTorch
 
-PyTorch同样实现了自动求导。
+PyTorch 同样实现了自动求导。
 
-但与Caffe和TensorFlow不同，PyTorch是[define by run](https://docs.chainer.org/en/stable/guides/define_by_run.html)的programming model。PyTorch会根据Python代码的执行自动生成计算图，而不是先定义计算图再执行，所以整个代码会简练很多。很多熟悉Python的用户会发现PyTorch非常容易上手。
+但与 Caffe 和 TensorFlow 不同，PyTorch 是 [define by run](https://docs.chainer.org/en/stable/guides/define_by_run.html) 的 programming model。PyTorch 会根据 Python **代码的执行**生成计算图，而不是先定义计算图再执行，所以代码会简练很多。很多熟悉 Python 的用户会发现 PyTorch 相比 TensorFlow 容易上手。
 
 ```python
 import torch
@@ -136,20 +120,20 @@ print(y.grad.data)
 print(z.grad.data)
 ```
 
-由于是逐行执行Python的代码，整个forward十分透明。对于自动生成的backward，用户也可以通过[register\_hook](https://pytorch.org/docs/stable/autograd.html#torch.Tensor.register_hook)来debug。可以说是基本上解决了黑箱问题。
-
-PyTorch直接使用的是Python的control flow，使用起来十分的自然。比如for loop能很直接实现一个RNN
+由于是逐行执行 Python 的代码，整个 forward 过程十分透明，用户可以用熟悉的 Python Debugger 进行调试。PyTorch 使用的是 Python 的 control flow，使用起来十分的自然。比如for loop能很直接实现一个RNN
 
 ```python
 outputs = []
 hiddens = []
 for t in range(time_steps):
-	x_input = X[t]
-	output, hidden = your_cell(X_input)
-	outputs.append(output)
-	hidden.append(hidden)
+  x_input = X[t]
+  output, hidden = your_cell(X_input)
+  outputs.append(output)
+  hidden.append(hidden)
 ```
 
-## Others
+对于自动生成的 backward，用户也可以通过 [register\_hook](https://pytorch.org/docs/stable/autograd.html#torch.Tensor.register_hook) 来调试，大大增加了易用性，可以说是基本上解决了黑箱问题。
 
-从Programming Model来讲，DLF主要的贡献是autodiff。但与此同时，DL又是一个很吃计算力的领域，所以DLF都会支持GPU Computing。
+## Conclusion
+
+从 Programming Model 方面来看，DLF 主要的贡献是 autodiff。在另一方面，由于 DL 又是一个很吃计算力的领域，所以 DLF 都会一套接口支持 CPU/GPU 计算。
